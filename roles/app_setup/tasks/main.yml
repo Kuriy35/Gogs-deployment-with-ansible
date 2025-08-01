@@ -1,0 +1,107 @@
+---
+  - name: Create git user
+    user:
+      name: git
+      shell: /bin/bash
+      home: /home/git
+      create_home: yes
+
+  - name: Download Gogs binary archive
+    get_url:
+      url: https://github.com/gogs/gogs/releases/download/v0.13.3/gogs_0.13.3_linux_amd64.tar.gz
+      dest: /tmp/gogs.tar.gz
+      mode: '0644'
+
+  - name: Ensure /home/git directory exists
+    file:
+      path: /home/git
+      state: directory
+      owner: git
+      group: git
+      mode: '0755'
+
+  - name: Extract Gogs archive to /home/git
+    unarchive:
+      src: /tmp/gogs.tar.gz
+      dest: /home/git
+      remote_src: yes
+
+  - name: Set ownership of /home/git recursively
+    file:
+      path: /home/git
+      owner: git
+      group: git
+      recurse: yes
+
+  - name: Copy gogs.service to systemd
+    copy:
+      src: /home/git/gogs/scripts/systemd/gogs.service
+      dest: /etc/systemd/system/gogs.service
+      mode: '0644'
+      remote_src: yes
+
+  - name: Reload systemd daemon
+    systemd:
+      daemon_reload: yes
+
+  - name: Enable and start gogs service
+    systemd:
+      name: gogs
+      state: started
+      enabled: yes
+
+  - name: Set application domain in app.ini
+    ini_file:
+      path: /home/git/gogs/custom/conf/app.ini
+      section: server
+      option: DOMAIN
+      value: gogs.local
+
+  - name: Set external_url in app.ini
+    ini_file:
+      path: /home/git/gogs/custom/conf/app.ini
+      section: server
+      option: EXTERNAL_URL
+      value: "http://{{ ansible_default_ipv4.address }}:3000/"
+
+  - name: Set http_addr in app.ini
+    ini_file:
+      path: /home/git/gogs/custom/conf/app.ini
+      section: server
+      option: HTTP_ADDR
+      value: "{{ ansible_default_ipv4.address }}"
+  
+  - name: Set database type in app.ini
+    ini_file:
+      path: /home/git/gogs/custom/conf/app.ini
+      section: database
+      option: TYPE
+      value: mysql
+
+  - name: Set database host in app.ini
+    ini_file:
+      path: /home/git/gogs/custom/conf/app.ini
+      section: database
+      option: HOST
+      value: 192.168.56.103:3306
+
+  - name: Set database name in app.ini
+    ini_file:
+      path: /home/git/gogs/custom/conf/app.ini
+      section: database
+      option: NAME
+      value: gogs
+
+  - name: Set database user in app.ini
+    ini_file:
+      path: /home/git/gogs/custom/conf/app.ini
+      section: database
+      option: USER
+      value: gogs
+
+  - name: Set database password in app.ini
+    ini_file:
+      path: /home/git/gogs/custom/conf/app.ini
+      section: database
+      option: PASSWORD
+      value: gogs_password

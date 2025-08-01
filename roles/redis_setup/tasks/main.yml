@@ -1,0 +1,25 @@
+---
+  - name: Install Redis server
+    apt:
+      name: redis-server
+      state: present
+      update_cache: true
+
+  - name: Ensure Redis is started and enabled
+    service:
+      name: redis-server
+      state: started
+      enabled: true
+
+  - name: Allow remote access to Redis
+    lineinfile:
+      path: /etc/redis/redis.conf
+      regexp: '^bind '
+      line: 'bind 0.0.0.0'
+      state: present
+      backup: yes
+
+  - name: Restart Redis after config change
+    service:
+      name: redis-server
+      state: restarted

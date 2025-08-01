@@ -1,0 +1,8 @@
+---
+  - name: Setup DB server with MariaDB and Redis
+    hosts: DB
+    become: true
+
+    roles: 
+      - db_setup
+      - redis_setup

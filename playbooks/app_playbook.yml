@@ -1,0 +1,7 @@
+---
+  - name: Setup application on server
+    hosts: APP
+    become: true
+
+    roles:
+      - app_setup
