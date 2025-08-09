@@ -1,0 +1,57 @@
+---
+  - name: Backup current binary
+    copy:
+      src: "{{ gogs_current_binary_path }}/{{ binary_name }}"
+      dest: "{{ gogs_current_binary_path }}/{{ gogs_backup_name }}"
+      mode: 0755
+
+  - name: Stop Gogs service
+    systemd:
+      name: "{{ service_name }}"
+      state: stopped
+
+  - name: Update binary file to new version
+    copy:
+      src: "{{ gogs_new_binary_path }}/{{ new_binary_name }}"
+      dest: "{{ gogs_current_binary_path }}/{{ binary_name }}"
+      mode: 0755
+
+  - name: Start Gogs service
+    systemd:
+      name: "{{ service_name }}"
+      state: started
+      enabled: yes
+
+  - block:
+      - name: Health-check of Gogs service
+        uri: 
+          url: "http://{{ ansible_enp0s8.ipv4.address }}:3000"
+          status_code: 200
+          timeout: 10
+
+      - name: Delete old backup binary after successful deploy
+        file:
+          path: "{{ gogs_current_binary_path }}/{{ gogs_backup_name }}"
+          state: absent
+    rescue:
+      - name: Restore backup binary due to failed health check
+        copy:
+          src: "{{ gogs_current_binary_path }}/{{ gogs_backup_name }}"
+          dest: "{{ gogs_current_binary_path }}/{{ binary_name }}"
+          mode: 0755
+
+      - name: Restart Gogs service after rollback
+        systemd:
+          name: "{{ service_name }}"
+          state: restarted
+          enabled: yes
+
+      - name: Delete new (faulty) binary after rollback
+        file:
+          path: "{{ gogs_current_binary_path }}/{{ binary_name }}"
+          state: absent
+
+      - name: Fail deployment due to health-check failure
+        fail:
+          msg: "Gogs health-check failed, rolled back to previous binary."
+

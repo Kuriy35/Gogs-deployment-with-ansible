@@ -1,0 +1,28 @@
+---
+  - name: Install NGINX 
+    apt:
+      name: nginx
+      update_cache: yes
+
+  - name: Setup config file for load balancer
+    template:
+      src: nginx_config.j2
+      dest: /etc/nginx/sites-available/default
+      mode: '0644'
+
+  - name: Test nginx configuration
+    command: nginx -t
+    register: nginx_test
+    ignore_errors: yes    
+
+  - name: Reload nginx
+    service:
+      name: nginx
+      state: reloaded
+    when: nginx_test.rc == 0
+
+  - name: Ensure nginx is running and enabled
+    service:
+      name: nginx
+      state: started
+      enabled: yes

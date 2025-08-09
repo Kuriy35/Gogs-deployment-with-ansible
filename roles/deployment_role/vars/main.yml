@@ -1,0 +1,8 @@
+---
+  gogs_user: git
+  gogs_current_binary_path: /home/{{ gogs_user }}/gogs
+  binary_name: gogs
+  gogs_backup_name: gogs_backup
+  gogs_new_binary_path: /tmp
+  new_binary_name: gogs_new
+  service_name: gogs

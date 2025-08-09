@@ -1,2 +1,9 @@
 ---
-# vars file for roles/app_setup
+  gogs_download_link: https://github.com/gogs/gogs/releases/download/v0.12.0/linux_amd64.tar.gz
+  gogs_username: git
+  db_user: gogs
+  db_name: gogs
+  db_pass: gogs_password
+  db_address: 192.168.56.103
+  db_type: mysql
+  load_balancer_address: 192.168.56.104

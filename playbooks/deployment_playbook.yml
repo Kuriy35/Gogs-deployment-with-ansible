@@ -1,0 +1,8 @@
+---
+  - name: Deploy application on server
+    hosts: APP
+    become: true
+    serial: 1
+
+    roles:
+      - deployment_role

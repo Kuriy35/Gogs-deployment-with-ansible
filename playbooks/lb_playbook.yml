@@ -1,0 +1,7 @@
+---
+  - name: Setup load balancer using NGINX
+    hosts: LB
+    become: yes
+
+    roles: 
+      - lb_setup

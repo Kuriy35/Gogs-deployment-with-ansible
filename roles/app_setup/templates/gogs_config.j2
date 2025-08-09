@@ -1,0 +1,55 @@
+BRAND_NAME = Gogs
+RUN_USER   = {{ gogs_username }}
+RUN_MODE   = prod
+
+[database]
+TYPE     = {{ db_type }}
+HOST     = {{ db_address }}:3306
+NAME     = {{ db_name }}
+SCHEMA   = public
+USER     = {{ db_user }}
+PASSWORD = {{ db_pass }}
+SSL_MODE = disable
+PATH     = /home/{{ gogs_username }}/gogs/data/gogs.db
+
+[repository]
+ROOT           = /home/{{ gogs_username }}/gogs-repositories
+DEFAULT_BRANCH = master
+
+[server]
+DOMAIN           = {{ ansible_enp0s8.ipv4.address }}
+HTTP_PORT        = 3000
+EXTERNAL_URL     = http://{{ load_balancer_address }}/
+DISABLE_SSH      = false
+SSH_PORT         = 22
+START_SSH_SERVER = false
+OFFLINE_MODE     = false
+
+[email]
+ENABLED = false
+
+[auth]
+REQUIRE_EMAIL_CONFIRMATION  = false
+DISABLE_REGISTRATION        = false
+ENABLE_REGISTRATION_CAPTCHA = true
+REQUIRE_SIGNIN_VIEW         = false
+
+[user]
+ENABLE_EMAIL_NOTIFICATION = false
+
+[picture]
+DISABLE_GRAVATAR        = false
+ENABLE_FEDERATED_AVATAR = false
+
+[session]
+PROVIDER = redis
+PROVIDER_CONFIG = network=tcp,addr={{ db_address }}:6379,db=0,pool_size=100,idle_timeout=180
+
+[log]
+MODE      = file
+LEVEL     = Info
+ROOT_PATH = /home/{{ gogs_username }}/gogs/log
+
+[security]
+INSTALL_LOCK = true
+SECRET_KEY   = LwmKLqki4nOofEc
