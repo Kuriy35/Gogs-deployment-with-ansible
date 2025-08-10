@@ -4,6 +4,7 @@
       src: "{{ gogs_current_binary_path }}/{{ binary_name }}"
       dest: "{{ gogs_current_binary_path }}/{{ gogs_backup_name }}"
       mode: 0755
+      remote_src: true
 
   - name: Stop Gogs service
     systemd:
@@ -15,6 +16,13 @@
       src: "{{ gogs_new_binary_path }}/{{ new_binary_name }}"
       dest: "{{ gogs_current_binary_path }}/{{ binary_name }}"
       mode: 0755
+  
+  - name: Set ownership of new binary to git user
+    file:
+      path: "{{ gogs_current_binary_path }}/{{ binary_name }}"
+      owner: git
+      group: git
+      mode: 0755
 
   - name: Start Gogs service
     systemd:
@@ -23,33 +31,46 @@
       enabled: yes
 
   - block:
+      - name: Wait for Gogs port to be available
+        wait_for:
+          host: "{{ host_ip_address }}"
+          port: 3000
+          delay: 3
+          timeout: 20
+
       - name: Health-check of Gogs service
-        uri: 
-          url: "http://{{ ansible_enp0s8.ipv4.address }}:3000"
+        uri:
+          url: "http://{{ host_ip_address }}:3000"
           status_code: 200
-          timeout: 10
+          timeout: 5
+          validate_certs: no
+        register: healthcheck_result
+        retries: 5
+        delay: 2
+        until: healthcheck_result.status == 200
 
       - name: Delete old backup binary after successful deploy
         file:
           path: "{{ gogs_current_binary_path }}/{{ gogs_backup_name }}"
           state: absent
     rescue:
+      - name: Delete new (faulty) binary after rollback
+        file:
+          path: "{{ gogs_current_binary_path }}/{{ binary_name }}"
+          state: absent
+
       - name: Restore backup binary due to failed health check
         copy:
           src: "{{ gogs_current_binary_path }}/{{ gogs_backup_name }}"
           dest: "{{ gogs_current_binary_path }}/{{ binary_name }}"
           mode: 0755
+          remote_src: true
 
       - name: Restart Gogs service after rollback
         systemd:
           name: "{{ service_name }}"
           state: restarted
           enabled: yes
-
-      - name: Delete new (faulty) binary after rollback
-        file:
-          path: "{{ gogs_current_binary_path }}/{{ binary_name }}"
-          state: absent
 
       - name: Fail deployment due to health-check failure
         fail:

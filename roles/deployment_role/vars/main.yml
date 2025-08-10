@@ -6,3 +6,4 @@
   gogs_new_binary_path: /tmp
   new_binary_name: gogs_new
   service_name: gogs
+  host_ip_address: "{{ (ansible_enp0s8.ipv4.address if ansible_enp0s8 is defined else (ansible_eth1.ipv4.address if ansible_eth1 is defined else '0.0.0.0')) }}"

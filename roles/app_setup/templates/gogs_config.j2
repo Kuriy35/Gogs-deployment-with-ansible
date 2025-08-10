@@ -17,7 +17,7 @@ ROOT           = /home/{{ gogs_username }}/gogs-repositories
 DEFAULT_BRANCH = master
 
 [server]
-DOMAIN           = {{ ansible_enp0s8.ipv4.address }}
+DOMAIN           = {{ (ansible_enp0s8.ipv4.address if ansible_enp0s8 is defined else (ansible_eth1.ipv4.address if ansible_eth1 is defined else '0.0.0.0')) }}
 HTTP_PORT        = 3000
 EXTERNAL_URL     = http://{{ load_balancer_address }}/
 DISABLE_SSH      = false
